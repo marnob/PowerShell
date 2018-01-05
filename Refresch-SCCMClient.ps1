@@ -1,4 +1,4 @@
-$CompName="."
+$CompName="." # . is the local computer. Enter a computername.
 $actions=(
 '{00000000-0000-0000-0000-000000000121}',
 '{00000000-0000-0000-0000-000000000003}',
