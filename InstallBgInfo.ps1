@@ -9,9 +9,11 @@
 $url = 'https://live.sysinternals.com/Bginfo.exe'
 $BGIFileURL = 'https://github.com/marnob/PowerShell/raw/master/Default.bgi'
 $dstPath = "$ENV:ProgramFiles\BgInfo"
+$TaskName = 'BgInfo'
 #$dstPath = "$env:USERPROFILE\Desktop"
 $EXE = "$dstPath\Bginfo.exe"
 $BGI = "$dstPath\Default.bgi"
+$ExeArguments = """$BGI"" /TIMER:0 /NOLICPROMPT"
 
 if (!(Test-Path -Path $dstPath)){
     New-Item -Path $dstPath -ItemType Directory | Out-Null
@@ -45,10 +47,20 @@ catch{
     Exit 1
 }
 # Create Scheduled Task
-$stateChangeTrigger = Get-CimClass -Namespace ROOT\Microsoft\Windows\TaskScheduler -ClassName MSFT_TaskSessionStateChangeTrigger
-$triggers = @()
-$triggers += New-ScheduledTaskTrigger -AtLogOn
-$triggers += New-CimInstance -CimClass $stateChangeTrigger -Property @{StateChange = 3} -ClientOnly
-    $triggers += New-CimInstance -CimClass $stateChangeTrigger -Property @{StateChange = 1} -ClientOnly
-$Action= New-ScheduledTaskAction -Execute """$EXE""" -Argument """$BGI"" /TIMER:0 /NOLICPROMPT" 
-Register-ScheduledTask -TaskName "BgInfo" -Trigger $triggers -Action $Action -force | Out-Null
+Try{
+    Write-Host "Creating scheduled task..." -NoNewline
+    $stateChangeTrigger = Get-CimClass -Namespace ROOT\Microsoft\Windows\TaskScheduler -ClassName MSFT_TaskSessionStateChangeTrigger -ErrorAction stop
+    $triggers = @()
+    $triggers += New-ScheduledTaskTrigger -AtLogOn -ErrorAction Stop
+    $triggers += New-CimInstance -CimClass $stateChangeTrigger -Property @{StateChange = 3} -ClientOnly -ErrorAction stop
+    $triggers += New-CimInstance -CimClass $stateChangeTrigger -Property @{StateChange = 1} -ClientOnly -ErrorAction stop
+    $Action= New-ScheduledTaskAction -Execute """$EXE""" -Argument $ExeArguments -ErrorAction Stop
+    $Principal = New-ScheduledTaskPrincipal -GroupId 'Users'
+    $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries  -DontStopIfGoingOnBatteries
+    Register-ScheduledTask -TaskName $TaskName -Trigger $triggers -Action $Action -Settings $Settings -force -Principal $Principal -ErrorAction stop | Out-Null -ErrorAction stop
+    Write-Host "Done!" -ForegroundColor Green
+}
+Catch{
+    Write-Host "`nERROR: Unkonow error occured creating the Scheduled Task." -ForegroundColor Red
+    Exit 1
+}
