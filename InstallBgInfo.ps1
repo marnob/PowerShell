@@ -3,7 +3,7 @@
  Description:   Downloads and installs BgInfo
  Author:        Marcel Nobel, Prodware
  Date:          06/20/2019 mm/dd/yyyy
- Version:       1.0
+ Version:       1.1
  Comments:           
 #>
 $url = 'https://live.sysinternals.com/Bginfo.exe'
