@@ -64,3 +64,4 @@ Catch{
     Write-Host "`nERROR: Unkonow error occured creating the Scheduled Task." -ForegroundColor Red
     Exit 1
 }
+Start-ScheduledTask -TaskName $TaskName
