@@ -14,6 +14,7 @@ $TaskName = 'BgInfo'
 $EXE = "$dstPath\Bginfo.exe"
 $BGI = "$dstPath\Default.bgi"
 $ExeArguments = """$BGI"" /TIMER:0 /NOLICPROMPT"
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 if (!(Test-Path -Path $dstPath)){
     New-Item -Path $dstPath -ItemType Directory | Out-Null
