@@ -12,9 +12,9 @@ function FormatDisk {
         $count++
     }
 }
-Function InstallBGInfo {
-    $url = 'https://live.sysinternals.com/Bginfo.exe'
-    $BGIFileURL = 'https://github.com/marnob/PowerShell/raw/master/Default.bgi'
+Function Install_BGInfo {
+    $url = 'http://live.sysinternals.com/Bginfo.exe'
+    $BGIFileURL = 'http://github.com/marnob/PowerShell/raw/master/Default.bgi'
     $dstPath = "$ENV:ProgramFiles\BgInfo"
     $TaskName = 'BgInfo'
     #$dstPath = "$env:USERPROFILE\Desktop"
@@ -28,35 +28,26 @@ Function InstallBGInfo {
     }
     # Download BgInfo 
     try{
-        Write-Host "Downloading Bgingo.exe from https://live.sysinternals.com..." -NoNewline
         Invoke-WebRequest -Uri $url -OutFile $EXE -ErrorAction Stop
-        Write-Host "Done!" -ForegroundColor Green
     }
     catch [System.IO.DirectoryNotFoundException]{
-        Write-Host "`nERROR: No permissions to write to $dstPath." -ForegroundColor Red
         Exit 1
     }
     catch{
-        Write-Host "`nERROR: Unkonow error occured." -ForegroundColor Red
         Exit 1
     }
     # Download Default.bgi
     try{
-        Write-Host "Downloading Default.bgi from GitHub..." -NoNewline
         Invoke-WebRequest -Uri $BGIFileURL -OutFile $BGI -ErrorAction Stop
-        Write-Host "Done!" -ForegroundColor Green
     }
     catch [System.IO.DirectoryNotFoundException]{
-        Write-Host "`nERROR: No permissions to write to $dstPath." -ForegroundColor Red
         Exit 1
     }
     catch{
-        Write-Host "`nERROR: Unkonow error occured." -ForegroundColor Red
         Exit 1
     }
     # Create Scheduled Task
     Try{
-        Write-Host "Creating scheduled task..." -NoNewline
         $stateChangeTrigger = Get-CimClass -Namespace ROOT\Microsoft\Windows\TaskScheduler -ClassName MSFT_TaskSessionStateChangeTrigger -ErrorAction stop
         $triggers = @()
         $triggers += New-ScheduledTaskTrigger -AtLogOn -ErrorAction Stop
@@ -66,14 +57,30 @@ Function InstallBGInfo {
         $Principal = New-ScheduledTaskPrincipal -GroupId 'Users'
         $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries  -DontStopIfGoingOnBatteries
         Register-ScheduledTask -TaskName $TaskName -Trigger $triggers -Action $Action -Settings $Settings -force -Principal $Principal -ErrorAction stop | Out-Null -ErrorAction stop
-        Write-Host "Done!" -ForegroundColor Green
     }
     Catch{
-        Write-Host "`nERROR: Unkonow error occured creating the Scheduled Task." -ForegroundColor Red
         Exit 1
     }
     Start-ScheduledTask -TaskName $TaskName
 }
+Function Install_SSMS {
+    # Set file and folder path for SSMS installer .exe
+    $folderpath="c:\windows\temp"
+    $filepath="$folderpath\SSMS-Setup-ENU.exe"
+    
+    #If SSMS not present, download
+    if (!(Test-Path $filepath)){
+        #$URL = "https://download.microsoft.com/download/3/1/D/31D734E0-BFE8-4C33-A9DE-2392808ADEE6/SSMS-Setup-ENU.exe"
+        $URL = "https://aka.ms/ssmsfullsetup"
+        $clnt = New-Object System.Net.WebClient
+        $clnt.DownloadFile($url,$filepath)
+    }
+    # start the SSMS installer
+    $Parms = " /Install /Quiet /Norestart /Logs log.txt"
+    $Prms = $Parms.Split(" ")
+    & "$filepath" $Prms | Out-Null
+}
 new-item -Path c:\TestMarcel -ItemType Directory
 FormatDisk
-InstallBGInfo
+Install_BGInfo
+Install_SSMS
