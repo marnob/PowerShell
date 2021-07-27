@@ -1,5 +1,4 @@
 function update-ccm {
-    $CompName = "." # . is the local computer. Enter a computername.
     $actions = (
         '{00000000-0000-0000-0000-000000000121}',
         '{00000000-0000-0000-0000-000000000003}',
@@ -11,7 +10,7 @@ function update-ccm {
         '{00000000-0000-0000-0000-000000000113}',
         '{00000000-0000-0000-0000-000000000032}')
     foreach ($action in $actions) {
-        $WMIPath = "\\" + $CompName + "\root\ccm:SMS_Client" 
+        $WMIPath = "\\.\root\ccm:SMS_Client" 
         $SMSwmi = [wmiclass] $WMIPath 
         [Void]$SMSwmi.TriggerSchedule($action)
     }
